@@ -33,7 +33,12 @@ CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS := -g $(ARCH)
 LDFLAGS := -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lcitro2d -lcitro3d -lctru -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lm
+# Order matters: the linker resolves each lib in one left-to-right pass, only
+# pulling in symbols a *later* library still needs. curl needs socket
+# functions (poll/inet_pton/send/recv/...) from ctru, and mbedcrypto needs
+# ctru's RNG (sslcGenerateRandomData) -- so ctru must come after both, not
+# before. citro2d/citro3d also depend on ctru, hence it's last overall.
+LIBS := -lcitro2d -lcitro3d -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lctru -lz -lm
 
 LIBDIRS := $(CTRULIB) $(PORTLIBS)
 
