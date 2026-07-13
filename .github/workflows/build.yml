@@ -24,7 +24,17 @@ jobs:
 
       - name: Install extra 3DS portlibs (curl, mbedtls)
         run: |
-          dkp-pacman -Sy --noconfirm 3ds-curl 3ds-mbedtls 3ds-zlib || true
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i..."
+            if dkp-pacman -Sy --noconfirm 3ds-curl 3ds-mbedtls 3ds-zlib; then
+              echo "portlibs installed"
+              exit 0
+            fi
+            echo "pkg.devkitpro.org request failed (often a transient 403 under CI load), retrying in $((i*10))s..."
+            sleep $((i*10))
+          done
+          echo "::error::Could not reach pkg.devkitpro.org after 5 attempts. Re-run the job -- this is a server-side flake, not a problem with the code."
+          exit 1
 
       - name: Build
         run: |
