@@ -51,6 +51,13 @@ export OFILES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 export INCLUDE := -I$(CURDIR)/$(SOURCES) -I$(CTRULIB)/include -I$(PORTLIBS)/include
 export LIBPATHS := -L$(CTRULIB)/lib -L$(PORTLIBS)/lib
 
+# Link through the ARM gcc driver, not the bare linker -- otherwise LD falls
+# back to Make's built-in default ("ld", the host's x86_64 linker in a GitHub
+# Actions container) which doesn't understand GCC-style flags like -mtp=soft
+# ("ld: unrecognised emulation mode: tp=soft"). CXX would be needed instead
+# if this project ever grows .cpp files.
+export LD := $(CC)
+
 # Without this, the sub-make invoked from inside build/ has no idea where
 # to find app_state.c etc. -- it only looks in its own (build/) directory,
 # hence "No rule to make target 'app_state.o'".
