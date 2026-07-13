@@ -2,6 +2,7 @@
 #include <3ds.h>
 #include <curl/curl.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <string.h>
 #include <stdio.h>
 
