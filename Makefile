@@ -16,9 +16,10 @@ APP_TITLE    := 3DSFin
 APP_DESCRIPTION := Jellyfin client
 APP_AUTHOR   := 3dsfin project
 
-# libctru/citro2d/citro3d are already on the default search path via
-# devkitARM's 3dsx.specs -- no need to add them manually. Portlibs (curl,
-# mbedtls, zlib) are NOT covered by that, so we add them explicitly here.
+# libctru/citro2d/citro3d headers/libs, plus curl/mbedtls/zlib portlibs.
+# Both are added explicitly -- don't rely on any implicit default search
+# path from the toolchain; that behaved inconsistently between builds.
+CTRULIB  := $(DEVKITPRO)/libctru
 PORTLIBS := $(DEVKITPRO)/portlibs/3ds
 
 ARCH := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
@@ -34,7 +35,7 @@ LDFLAGS := -specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS := -lcitro2d -lcitro3d -lctru -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lz -lm
 
-LIBDIRS := $(PORTLIBS)
+LIBDIRS := $(CTRULIB) $(PORTLIBS)
 
 # ---- standard devkitPro 3ds template boilerplate below ----
 
@@ -47,8 +48,8 @@ CPPFILES := $(notdir $(wildcard $(SOURCES)/*.cpp))
 SFILES   := $(notdir $(wildcard $(SOURCES)/*.s))
 
 export OFILES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-export INCLUDE := -I$(CURDIR)/$(SOURCES) -I$(PORTLIBS)/include
-export LIBPATHS := -L$(PORTLIBS)/lib
+export INCLUDE := -I$(CURDIR)/$(SOURCES) -I$(CTRULIB)/include -I$(PORTLIBS)/include
+export LIBPATHS := -L$(CTRULIB)/lib -L$(PORTLIBS)/lib
 
 # Without this, the sub-make invoked from inside build/ has no idea where
 # to find app_state.c etc. -- it only looks in its own (build/) directory,
